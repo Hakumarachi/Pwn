@@ -1,27 +1,47 @@
-
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
-void stack_overflow(void) {
-    char stack_buf[16];
+struct PasswordMng {
+    char password[16] ;
+    void (*check)(char*);
+    void (*get)(void);
+};
 
-    fread(stack_buf, 1, 48, stdin);
-    return;
+struct PasswordMng password_manager;
+
+
+void printSecret(void) {
+    printf("Good job !\n");
 }
 
-int main(void) {
-    size_t alloc_size = 0;
-    size_t read_size = 0;
-    char *heap_buf;
+void checkPassword(char *password) {
+    char passwd[16] = "";  // array to store the password
 
-    if (scanf("%zu", &alloc_size) != 1) return -1;
-    if (scanf("%zu", &read_size) != 1) return -1;
+    FILE *fp = fopen(".passwd", "r");
+    fread(passwd, 1, 15, fp);
+    fclose(fp);
+    passwd[15] = '\0';
 
-    heap_buf = (char*)malloc(alloc_size);
-    if (!heap_buf) return -1;
+    if (strcmp(password, passwd) == 0) {
+        printSecret();
+    } else {
+        printf("Permission denied !\n");
+    }
+}
 
-    fread(heap_buf, sizeof(char), read_size, stdin);
-    stack_overflow();
-    free(heap_buf);
+void getPassword(void) {
+    printf("Enter password: ");
+    scanf("%s", password_manager.password);  // read the password from the user
+ 
+    password_manager.check(password_manager.password);
+
+}
+int main() {
+
+    password_manager.check = checkPassword;
+    password_manager.get = getPassword;
+    password_manager.get();
+    
     return 0;
 }
